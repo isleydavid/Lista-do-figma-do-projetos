@@ -2,6 +2,7 @@
 import React from 'react';
 
 export interface FigmaLink {
+  id: string;
   title: string;
   url: string;
   description?: string;
@@ -10,7 +11,7 @@ export interface FigmaLink {
 export interface LinkCategory {
   id: string;
   title: string;
-  icon: React.ReactNode;
+  icon?: React.ReactNode;
   links: FigmaLink[];
   color: string;
 }

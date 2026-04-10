@@ -6,9 +6,11 @@ interface LinkCardProps {
   link: FigmaLink;
   categoryColor: string;
   categoryId: string;
+  onDelete?: (id: string) => void;
+  onEdit?: (link: FigmaLink, categoryId: string) => void;
 }
 
-const LinkCard: React.FC<LinkCardProps> = ({ link, categoryColor, categoryId }) => {
+const LinkCard: React.FC<LinkCardProps> = ({ link, categoryColor, categoryId, onDelete, onEdit }) => {
   const getAccentColor = (color: string) => {
     switch (color) {
       case 'blue': return 'text-blue-600 bg-blue-50 border-blue-100';
@@ -65,9 +67,39 @@ const LinkCard: React.FC<LinkCardProps> = ({ link, categoryColor, categoryId }) 
         <div className={`w-12 h-12 rounded-xl flex items-center justify-center border ${getAccentColor(categoryColor)}`}>
           {renderIcon()}
         </div>
-        <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-           <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
-           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Active</span>
+        <div className="flex items-center space-x-2">
+          {onEdit && (
+            <button 
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onEdit(link, categoryId);
+              }}
+              className="p-1.5 text-slate-300 hover:text-indigo-500 hover:bg-indigo-50 rounded-lg transition-all duration-200"
+              title="Editar card"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+            </button>
+          )}
+          {onDelete && (
+            <button 
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (window.confirm('Deseja realmente excluir este card?')) {
+                  onDelete(link.id);
+                }
+              }}
+              className="p-1.5 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all duration-200"
+              title="Excluir card"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </button>
+          )}
         </div>
       </div>
 
@@ -76,7 +108,7 @@ const LinkCard: React.FC<LinkCardProps> = ({ link, categoryColor, categoryId }) 
           {link.title}
         </h3>
         <p className="text-slate-500 text-sm leading-relaxed line-clamp-2">
-          {categoryId === 'ds' ? 'Guia de estilos e componentes fundamentais.' : `Documentação visual e fluxos do módulo ${link.title.toLowerCase()}.`}
+          {link.description || (categoryId === 'ds' ? 'Guia de estilos e componentes fundamentais.' : `Documentação visual e fluxos do módulo ${link.title.toLowerCase()}.`)}
         </p>
       </div>
 

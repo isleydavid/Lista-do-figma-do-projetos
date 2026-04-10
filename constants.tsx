@@ -13,13 +13,13 @@ export const CATEGORIES: LinkCategory[] = [
       </svg>
     ),
     links: [
-      { title: 'Portal do Servidor', url: 'https://www.figma.com/design/zDnYEKUxT1CXUGZvsqCsqI/Portal-do-Servidor?node-id=0-1&t=ZW3r0nyTGQWbWigG-1' },
-      { title: 'Processo Eletrônico', url: 'https://www.figma.com/design/a8xwGBJB91bsraAMeHdEhT/Processo-Eletrônico?node-id=0-1&t=d7y8j5dnL6HWSjNx-1' },
-      { title: 'Portal do Cidadão', url: 'https://www.figma.com/design/9MGkbCGBBOsbNDkAdbITHD/Portal-do-Cidadão?node-id=0-1&t=7HlwK7yU89w5kEOg-1' },
-      { title: 'Dashboard do Prefeito', url: 'https://www.figma.com/design/aa59WciyfNwxNY7Kt0B4iZ/Dashboard---Prefeito?node-id=0-1&t=LBIex6I8n92n9vMe-1' },
-      { title: 'Servidesk', url: 'https://www.figma.com/design/yau8DWyknG9nb8wpvAJXDV/Servidesk?node-id=0-1&t=67s9N94f7JdEj4Eu-1' },
-      { title: 'Configurações', url: 'https://www.figma.com/design/EFjTYuFNjDONonPBalKWit/Configurações?node-id=0-1&t=F16eK56d5blG6KBR-1' },
-      { title: 'Landing Page - Cidade Conectada', url: 'https://www.figma.com/design/qAi2es65czRjz0jlet11kc/Landing-Page---Cidade-Conectada?node-id=303-1590&t=teDe6XlBsJwqgPmR-1' },
+      { id: 'web-1', title: 'Portal do Servidor', url: 'https://www.figma.com/design/zDnYEKUxT1CXUGZvsqCsqI/Portal-do-Servidor?node-id=0-1&t=ZW3r0nyTGQWbWigG-1' },
+      { id: 'web-2', title: 'Processo Eletrônico', url: 'https://www.figma.com/design/a8xwGBJB91bsraAMeHdEhT/Processo-Eletrônico?node-id=0-1&t=d7y8j5dnL6HWSjNx-1' },
+      { id: 'web-3', title: 'Portal do Cidadão', url: 'https://www.figma.com/design/9MGkbCGBBOsbNDkAdbITHD/Portal-do-Cidadão?node-id=0-1&t=7HlwK7yU89w5kEOg-1' },
+      { id: 'web-4', title: 'Dashboard do Prefeito', url: 'https://www.figma.com/design/aa59WciyfNwxNY7Kt0B4iZ/Dashboard---Prefeito?node-id=0-1&t=LBIex6I8n92n9vMe-1' },
+      { id: 'web-5', title: 'Servidesk', url: 'https://www.figma.com/design/yau8DWyknG9nb8wpvAJXDV/Servidesk?node-id=0-1&t=67s9N94f7JdEj4Eu-1' },
+      { id: 'web-6', title: 'Configurações', url: 'https://www.figma.com/design/EFjTYuFNjDONonPBalKWit/Configurações?node-id=0-1&t=F16eK56d5blG6KBR-1' },
+      { id: 'web-7', title: 'Landing Page - Cidade Conectada', url: 'https://www.figma.com/design/qAi2es65czRjz0jlet11kc/Landing-Page---Cidade-Conectada?node-id=303-1590&t=teDe6XlBsJwqgPmR-1' },
     ]
   },
   {
@@ -32,8 +32,8 @@ export const CATEGORIES: LinkCategory[] = [
       </svg>
     ),
     links: [
-      { title: 'Aplicativo do cidadão', url: 'https://www.figma.com/design/rMK9W3UQjBhkdmP59KLu6Y/Cidade-Conectada--Aplicativo?node-id=0-1&t=QLjfEQCOT5uB7TeT-1' },
-      { title: 'Aplicativo do servidor', url: 'https://www.figma.com/design/eHE9eXqsZU4KnO4DAZEnum/Servidesk---Aplicativo?node-id=0-1&t=5KEtyAYxqDIC1OTH-1' },
+      { id: 'app-1', title: 'Aplicativo do cidadão', url: 'https://www.figma.com/design/rMK9W3UQjBhkdmP59KLu6Y/Cidade-Conectada--Aplicativo?node-id=0-1&t=QLjfEQCOT5uB7TeT-1' },
+      { id: 'app-2', title: 'Aplicativo do servidor', url: 'https://www.figma.com/design/eHE9eXqsZU4KnO4DAZEnum/Servidesk---Aplicativo?node-id=0-1&t=5KEtyAYxqDIC1OTH-1' },
     ]
   },
   {
@@ -46,8 +46,8 @@ export const CATEGORIES: LinkCategory[] = [
       </svg>
     ),
     links: [
-      { title: 'Guia de estilo - Web Products', url: 'https://www.figma.com/design/uFHQRVL8psadhnw6nq8LOn/Guia-de-estilo---Produtos-WEB?node-id=2001-1368&t=krMs7GkObIwvITTK-1' },
-      { title: 'Guia de estilo - App Servidor', url: 'https://www.figma.com/design/zn8kHCkdpgB1p8Q7nMuzrI/Servidesk---Design-System?node-id=1-2&t=PcUtyKE2deGMNid5-1' },
+      { id: 'ds-1', title: 'Guia de estilo - Web Products', url: 'https://www.figma.com/design/uFHQRVL8psadhnw6nq8LOn/Guia-de-estilo---Produtos-WEB?node-id=2001-1368&t=krMs7GkObIwvITTK-1' },
+      { id: 'ds-2', title: 'Guia de estilo - App Servidor', url: 'https://www.figma.com/design/zn8kHCkdpgB1p8Q7nMuzrI/Servidesk---Design-System?node-id=1-2&t=PcUtyKE2deGMNid5-1' },
     ]
   },
   {
@@ -60,7 +60,7 @@ export const CATEGORIES: LinkCategory[] = [
       </svg>
     ),
     links: [
-      { title: 'Cidade Conectada | Produtos Web View', url: 'https://www.figma.com/design/lMkSVWansGFpu8TP5woNY3/Cidade-Conectada-%7C-Produtos-Webview?node-id=7001-7807&t=mYoei31KF0PqDhSF-1' },
+      { id: 'archived-1', title: 'Cidade Conectada | Produtos Web View', url: 'https://www.figma.com/design/lMkSVWansGFpu8TP5woNY3/Cidade-Conectada-%7C-Produtos-Webview?node-id=7001-7807&t=mYoei31KF0PqDhSF-1' },
     ]
   }
 ];
