@@ -7,9 +7,10 @@ interface LinkCardProps {
   categoryColor: string;
   categoryId: string;
   onDelete?: (id: string) => void;
+  onEdit?: (link: FigmaLink, categoryId: string) => void;
 }
 
-const LinkCard: React.FC<LinkCardProps> = ({ link, categoryColor, categoryId, onDelete }) => {
+const LinkCard: React.FC<LinkCardProps> = ({ link, categoryColor, categoryId, onDelete, onEdit }) => {
   const getAccentColor = (color: string) => {
     switch (color) {
       case 'blue': return 'text-blue-600 bg-blue-50 border-blue-100';
@@ -67,6 +68,21 @@ const LinkCard: React.FC<LinkCardProps> = ({ link, categoryColor, categoryId, on
           {renderIcon()}
         </div>
         <div className="flex items-center space-x-2">
+          {onEdit && (
+            <button 
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onEdit(link, categoryId);
+              }}
+              className="p-1.5 text-slate-300 hover:text-indigo-500 hover:bg-indigo-50 rounded-lg transition-all duration-200"
+              title="Editar card"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+            </button>
+          )}
           {onDelete && (
             <button 
               onClick={(e) => {

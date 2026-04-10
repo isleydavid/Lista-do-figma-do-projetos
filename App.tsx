@@ -12,6 +12,7 @@ const App: React.FC = () => {
   const [categories, setCategories] = useState<LinkCategory[]>(INITIAL_CATEGORIES);
   const [isLoading, setIsLoading] = useState(false);
   const [isAddingLink, setIsAddingLink] = useState(false);
+  const [editingLink, setEditingLink] = useState<{link: FigmaLink, categoryId: string} | null>(null);
   const [newLink, setNewLink] = useState({ title: '', url: '', description: '', categoryId: 'web' });
 
   useEffect(() => {
@@ -100,24 +101,73 @@ const App: React.FC = () => {
     e.preventDefault();
     if (!newLink.title || !newLink.url) return;
 
-    const link: FigmaLink = {
-      id: `${newLink.categoryId}-${Date.now()}`,
-      title: newLink.title,
-      url: newLink.url,
-      description: newLink.description
-    };
+    let updatedCategories;
 
-    const updatedCategories = categories.map(cat => {
-      if (cat.id === newLink.categoryId) {
-        return { ...cat, links: [link, ...cat.links] };
-      }
-      return cat;
-    });
+    if (editingLink) {
+      // Editar link existente
+      updatedCategories = categories.map(cat => {
+        // Primeiro removemos o link da categoria antiga (caso tenha mudado)
+        const filteredLinks = cat.links.filter(l => l.id !== editingLink.link.id);
+        
+        // Se for a nova categoria, adicionamos o link atualizado
+        if (cat.id === newLink.categoryId) {
+          const updatedLink: FigmaLink = {
+            ...editingLink.link,
+            title: newLink.title,
+            url: newLink.url,
+            description: newLink.description
+          };
+          // Se a categoria for a mesma, mantemos a posição. Se mudou, vai pro topo.
+          if (cat.id === editingLink.categoryId) {
+            return {
+              ...cat,
+              links: cat.links.map(l => l.id === editingLink.link.id ? updatedLink : l)
+            };
+          } else {
+            return { ...cat, links: [updatedLink, ...filteredLinks] };
+          }
+        }
+        
+        // Se não for a nova categoria mas era a antiga, retornamos a lista filtrada
+        if (cat.id === editingLink.categoryId) {
+          return { ...cat, links: filteredLinks };
+        }
+
+        return cat;
+      });
+    } else {
+      // Criar novo link
+      const link: FigmaLink = {
+        id: `${newLink.categoryId}-${Date.now()}`,
+        title: newLink.title,
+        url: newLink.url,
+        description: newLink.description
+      };
+
+      updatedCategories = categories.map(cat => {
+        if (cat.id === newLink.categoryId) {
+          return { ...cat, links: [link, ...cat.links] };
+        }
+        return cat;
+      });
+    }
 
     setCategories(updatedCategories);
     setIsAddingLink(false);
+    setEditingLink(null);
     setNewLink({ title: '', url: '', description: '', categoryId: 'web' });
     await saveToS3(updatedCategories);
+  };
+
+  const handleEdit = (link: FigmaLink, categoryId: string) => {
+    setEditingLink({ link, categoryId });
+    setNewLink({
+      title: link.title,
+      url: link.url,
+      description: link.description || '',
+      categoryId: categoryId
+    });
+    setIsAddingLink(true);
   };
 
   const handleDeleteLink = async (linkId: string) => {
@@ -140,7 +190,11 @@ const App: React.FC = () => {
           </p>
         </div>
         <button 
-          onClick={() => setIsAddingLink(true)}
+          onClick={() => {
+            setEditingLink(null);
+            setNewLink({ title: '', url: '', description: '', categoryId: 'web' });
+            setIsAddingLink(true);
+          }}
           className="flex-shrink-0 px-8 py-4 bg-indigo-600 text-white font-bold text-sm uppercase tracking-widest rounded-2xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 flex items-center h-fit"
         >
           <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -154,8 +208,13 @@ const App: React.FC = () => {
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-[2.5rem] w-full max-w-lg p-10 shadow-2xl animate-in zoom-in-95 duration-300">
             <div className="flex justify-between items-center mb-8">
-              <h3 className="text-2xl font-black text-slate-900">Adicionar Novo Link</h3>
-              <button onClick={() => setIsAddingLink(false)} className="text-slate-400 hover:text-slate-600">
+              <h3 className="text-2xl font-black text-slate-900">
+                {editingLink ? 'Editar Link' : 'Adicionar Novo Link'}
+              </h3>
+              <button onClick={() => {
+                setIsAddingLink(false);
+                setEditingLink(null);
+              }} className="text-slate-400 hover:text-slate-600">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
@@ -215,7 +274,7 @@ const App: React.FC = () => {
                 disabled={isLoading}
                 className="w-full py-4 bg-slate-900 text-white font-black text-sm uppercase tracking-[0.2em] rounded-2xl hover:bg-indigo-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-xl"
               >
-                {isLoading ? 'Salvando...' : 'Criar Card Agora'}
+                {isLoading ? 'Salvando...' : editingLink ? 'Salvar Alterações' : 'Criar Card Agora'}
               </button>
             </form>
           </div>
@@ -246,6 +305,7 @@ const App: React.FC = () => {
                 categoryColor={category.color} 
                 categoryId={category.id} 
                 onDelete={handleDeleteLink}
+                onEdit={handleEdit}
               />
             ))}
           </div>
