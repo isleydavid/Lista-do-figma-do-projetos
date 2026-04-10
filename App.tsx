@@ -1,22 +1,228 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Layout from './components/Layout';
 import LinkCard from './components/LinkCard';
-import { CATEGORIES, CONTEXT_TEXT } from './constants';
+import { CATEGORIES as INITIAL_CATEGORIES, CONTEXT_TEXT } from './constants';
+import { FigmaLink, LinkCategory } from './types';
+
+const S3_URL = 'https://cubo-bot.s3.sa-east-1.amazonaws.com/data.json';
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState('projects');
+  const [categories, setCategories] = useState<LinkCategory[]>(INITIAL_CATEGORIES);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isAddingLink, setIsAddingLink] = useState(false);
+  const [newLink, setNewLink] = useState({ title: '', url: '', description: '', categoryId: 'web' });
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      // Limpeza de dados antigos que causavam erro de renderização
+      if (localStorage.getItem('figma_hub_data')) {
+        localStorage.removeItem('figma_hub_data');
+      }
+
+      // Tenta carregar do localStorage primeiro (apenas os links para evitar erro de objeto React)
+      const localData = localStorage.getItem('figma_hub_links');
+      if (localData) {
+        const savedLinksByCat = JSON.parse(localData);
+        const mergedWithLocal = INITIAL_CATEGORIES.map(cat => ({
+          ...cat,
+          links: savedLinksByCat[cat.id] || cat.links
+        }));
+        setCategories(mergedWithLocal);
+      }
+
+      const response = await fetch(S3_URL);
+      if (response.ok) {
+        const data = await response.json();
+        const mergedWithS3 = INITIAL_CATEGORIES.map(cat => {
+          const fetchedCat = data.find((d: any) => d.id === cat.id);
+          return {
+            ...cat,
+            links: fetchedCat ? fetchedCat.links : cat.links
+          };
+        });
+        
+        setCategories(mergedWithS3);
+        
+        // Salva apenas os links no localStorage
+        const linksToStore = mergedWithS3.reduce((acc, cat) => {
+          acc[cat.id] = cat.links;
+          return acc;
+        }, {} as Record<string, FigmaLink[]>);
+        localStorage.setItem('figma_hub_links', JSON.stringify(linksToStore));
+      }
+    } catch (error) {
+      console.error('Error fetching data from S3:', error);
+    }
+  };
+
+  const saveToS3 = async (updatedCategories: LinkCategory[]) => {
+    setIsLoading(true);
+    
+    // Salva apenas os links no localStorage para evitar erros de renderização
+    const linksToStore = updatedCategories.reduce((acc, cat) => {
+      acc[cat.id] = cat.links;
+      return acc;
+    }, {} as Record<string, FigmaLink[]>);
+    localStorage.setItem('figma_hub_links', JSON.stringify(linksToStore));
+
+    try {
+      const dataToSave = updatedCategories.map(cat => ({
+        id: cat.id,
+        links: cat.links
+      }));
+
+      const response = await fetch(S3_URL, {
+        method: 'PUT',
+        mode: 'cors',
+        body: JSON.stringify(dataToSave),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save to S3');
+      }
+    } catch (error) {
+      console.error('Error saving to S3 (CORS issue?):', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleAddLink = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newLink.title || !newLink.url) return;
+
+    const link: FigmaLink = {
+      id: `${newLink.categoryId}-${Date.now()}`,
+      title: newLink.title,
+      url: newLink.url,
+      description: newLink.description
+    };
+
+    const updatedCategories = categories.map(cat => {
+      if (cat.id === newLink.categoryId) {
+        return { ...cat, links: [link, ...cat.links] };
+      }
+      return cat;
+    });
+
+    setCategories(updatedCategories);
+    setIsAddingLink(false);
+    setNewLink({ title: '', url: '', description: '', categoryId: 'web' });
+    await saveToS3(updatedCategories);
+  };
+
+  const handleDeleteLink = async (linkId: string) => {
+    const updatedCategories = categories.map(cat => ({
+      ...cat,
+      links: cat.links.filter(l => l.id !== linkId)
+    }));
+
+    setCategories(updatedCategories);
+    await saveToS3(updatedCategories);
+  };
 
   const renderProjects = () => (
     <div className="space-y-16 animate-in fade-in duration-700">
-      <header className="max-w-3xl">
-        <h2 className="text-4xl font-black text-slate-900 tracking-tight mb-4">Artefatos de Projeto</h2>
-        <p className="text-lg text-slate-500 leading-relaxed font-medium">
-          Centralização de designs para evitar links soltos e criar uma fonte única da verdade visual para o ecossistema Cidade Conectada.
-        </p>
+      <header className="flex flex-col md:flex-row md:items-end justify-between gap-8">
+        <div className="max-w-3xl">
+          <h2 className="text-4xl font-black text-slate-900 tracking-tight mb-4">Artefatos de Projeto</h2>
+          <p className="text-lg text-slate-500 leading-relaxed font-medium">
+            Centralização de designs para evitar links soltos e criar uma fonte única da verdade visual para o ecossistema Cidade Conectada.
+          </p>
+        </div>
+        <button 
+          onClick={() => setIsAddingLink(true)}
+          className="flex-shrink-0 px-8 py-4 bg-indigo-600 text-white font-bold text-sm uppercase tracking-widest rounded-2xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 flex items-center h-fit"
+        >
+          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
+          </svg>
+          Novo Card
+        </button>
       </header>
 
-      {CATEGORIES.map((category) => (
+      {isAddingLink && (
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-[2.5rem] w-full max-w-lg p-10 shadow-2xl animate-in zoom-in-95 duration-300">
+            <div className="flex justify-between items-center mb-8">
+              <h3 className="text-2xl font-black text-slate-900">Adicionar Novo Link</h3>
+              <button onClick={() => setIsAddingLink(false)} className="text-slate-400 hover:text-slate-600">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            <form onSubmit={handleAddLink} className="space-y-6">
+              <div className="space-y-2">
+                <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Título do Projeto</label>
+                <input 
+                  type="text" 
+                  required
+                  className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none font-medium"
+                  placeholder="Ex: Dashboard de Vendas"
+                  value={newLink.title}
+                  onChange={e => setNewLink({...newLink, title: e.target.value})}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Link do Figma</label>
+                <input 
+                  type="url" 
+                  required
+                  className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none font-medium"
+                  placeholder="https://figma.com/design/..."
+                  value={newLink.url}
+                  onChange={e => setNewLink({...newLink, url: e.target.value})}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Descrição (Opcional)</label>
+                <textarea 
+                  className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none font-medium h-24 resize-none"
+                  placeholder="Breve descrição do que se trata este design..."
+                  value={newLink.description}
+                  onChange={e => setNewLink({...newLink, description: e.target.value})}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Categoria</label>
+                <select 
+                  className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none font-bold"
+                  value={newLink.categoryId}
+                  onChange={e => setNewLink({...newLink, categoryId: e.target.value})}
+                >
+                  {categories.map(cat => (
+                    <option key={cat.id} value={cat.id}>{cat.title}</option>
+                  ))}
+                </select>
+              </div>
+
+              <button 
+                type="submit"
+                disabled={isLoading}
+                className="w-full py-4 bg-slate-900 text-white font-black text-sm uppercase tracking-[0.2em] rounded-2xl hover:bg-indigo-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-xl"
+              >
+                {isLoading ? 'Salvando...' : 'Criar Card Agora'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {categories.map((category) => (
         <section key={category.id} className="space-y-8">
           <div className="flex items-center justify-between border-b border-slate-200/60 pb-5">
             <div className="flex items-center space-x-4">
@@ -33,8 +239,14 @@ const App: React.FC = () => {
           </div>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {category.links.map((link, idx) => (
-              <LinkCard key={idx} link={link} categoryColor={category.color} categoryId={category.id} />
+            {category.links.map((link) => (
+              <LinkCard 
+                key={link.id} 
+                link={link} 
+                categoryColor={category.color} 
+                categoryId={category.id} 
+                onDelete={handleDeleteLink}
+              />
             ))}
           </div>
         </section>
