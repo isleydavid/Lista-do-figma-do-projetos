@@ -5,7 +5,7 @@ import LinkCard from './components/LinkCard';
 import { CATEGORIES as INITIAL_CATEGORIES, CONTEXT_TEXT } from './constants';
 import { FigmaLink, LinkCategory } from './types';
 
-const S3_URL = 'https://cubo-bot.s3.sa-east-1.amazonaws.com/data.json';
+const S3_URL = 'https://cubinho.s3.us-east-1.amazonaws.com/data.json';
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState('projects');
